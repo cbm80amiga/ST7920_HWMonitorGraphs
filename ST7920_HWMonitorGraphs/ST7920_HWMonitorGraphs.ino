@@ -19,6 +19,9 @@
  https://cdn.hackaday.io/files/19018813666112/HardwareSerialMonitor_v1.1.zip
 */
 
+// comment out for regular mode
+//#define GRAPH_BAR
+
 #define LCD_BACKLIGHT  9
 #define LCD_CS         10
 
@@ -48,7 +51,6 @@ void setup()
   pinMode(LCD_BACKLIGHT, OUTPUT);
   //analogWrite(LCD_BACKLIGHT,30);
   digitalWrite(LCD_BACKLIGHT, HIGH);
-  Serial.begin(9600); // 32u4 USB Serial Baud Rate
   inputString.reserve(200);
   
   SPI.begin();
@@ -155,15 +157,24 @@ void addRAM()
 void drawGraph(int xg, int yg, int valTab[])
 {
   lcd.drawRectD(xg,yg,62,ght,1);
+#ifdef GRAPH_BAR
+  for(i=1;i<NUM_VAL;i++) {
+    lcd.fillRectD(1+xg+(i-1)*4,yg+ght-1-valTab[i],4,valTab[i],1);
+    lcd.drawLineH(1+xg+(i-1)*4,1+xg+(i+0)*4-1,yg+ght-1-valTab[i],1);
+    if(i>1) lcd.drawLineV(1+xg+(i-1)*4,yg+ght-1-valTab[i-1],yg+ght-1-valTab[i],1);
+  }
+#else
   for(i=0;i<NUM_VAL-1;i++) {
     int dy = valTab[i+1]-valTab[i];
     for(int j=0;j<4;j++) lcd.drawLineVfastD(1+xg+i*4+j,yg+ght-1-(valTab[i]+dy*j/4),yg+ght-1,1);
     lcd.drawLine(1+xg+i*4,yg+ght-1-valTab[i],1+xg+(i+1)*4,yg+ght-1-valTab[i+1],1);
   }
+#endif
 }
 
 void loop() 
 {
+  //readSerial();
   if(readSerial()) 
   {
     int xs=68;
